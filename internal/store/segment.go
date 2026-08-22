@@ -1,6 +1,7 @@
 package store
 
 import (
+	"database/sql"
 	"time"
 
 	"task156-subtitleqa/internal/model"
@@ -9,12 +10,14 @@ import (
 func scanSegment(row interface{ Scan(...interface{}) error }) (model.Segment, error) {
 	var seg model.Segment
 	var desc int
+	var speaker sql.NullString
 	var created, updated string
 	err := row.Scan(&seg.ID, &seg.MediaID, &seg.Index, &seg.StartMs, &seg.EndMs, &seg.Text,
-		&seg.SpeakerID, &desc, &seg.Language, &seg.Version, &seg.Status, &created, &updated)
+		&speaker, &desc, &seg.Language, &seg.Version, &seg.Status, &created, &updated)
 	if err != nil {
 		return seg, err
 	}
+	seg.SpeakerID = speaker.String
 	seg.IsDescriptive = desc != 0
 	seg.CreatedAt, _ = time.Parse(time.RFC3339, created)
 	seg.UpdatedAt, _ = time.Parse(time.RFC3339, updated)
