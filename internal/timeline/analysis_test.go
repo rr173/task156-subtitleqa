@@ -1,7 +1,9 @@
 package timeline
 
 import (
+	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"task156-subtitleqa/internal/config"
 	"task156-subtitleqa/internal/model"
@@ -57,5 +59,38 @@ func TestReadingSpeedCPS(t *testing.T) {
 	}
 	if _, ok := ReadingSpeedCPS("x", 1000, 1000); ok {
 		t.Error("expected false for non-positive duration")
+	}
+}
+
+func TestAnalyzeLongLine(t *testing.T) {
+	cfg := config.Default() // MaxSegmentChars == 84
+	long := strings.Repeat("字", cfg.MaxSegmentChars+1)
+	ok := strings.Repeat("字", cfg.MaxSegmentChars)
+
+	for _, tc := range []struct {
+		name string
+		text string
+		want bool
+	}{
+		{"over threshold", long, true},
+		{"at threshold", ok, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			findings := Analyze([]model.Segment{
+				{ID: "s1", Index: 1, StartMs: 0, EndMs: 60000, Text: tc.text},
+			}, cfg, map[string]bool{})
+			var found bool
+			for _, f := range findings {
+				if f.Rule == RuleLongLine {
+					found = true
+					if f.Severity != SeverityWarning {
+						t.Errorf("expected warning severity, got %q", f.Severity)
+					}
+				}
+			}
+			if found != tc.want {
+				t.Errorf("long_line=%v, want %v (chars=%d max=%d)", found, tc.want, utf8.RuneCountInString(tc.text), cfg.MaxSegmentChars)
+			}
+		})
 	}
 }

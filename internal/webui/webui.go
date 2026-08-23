@@ -89,7 +89,7 @@ async function loadQuality() {
   if(!current) return; const q = await j('/api/media/'+current+'/quality');
   const s = await j('/api/media/'+current+'/quality/summary');
   const badges = q.map(x => '<span class="badge '+(x.severity==='error'?'err':x.severity==='warning'?'warn':'info')+'">'+x.rule+'@#'+(x.segment_id||'').split('_').pop()+'</span>').join('');
-  document.getElementById('quality').innerHTML = '<h3>质量检查</h3><p>'+badges+'</p><p class="small">共'+s.total+'项，错误'+s.errors+'，警告'+s.warnings+'，重叠'+s.overlaps+'，空洞'+s.gaps+'，超速'+s.overspeed+'</p>';
+  document.getElementById('quality').innerHTML = '<h3>质量检查</h3><p>'+badges+'</p><p class="small">共'+s.total+'项，错误'+s.errors+'，警告'+s.warnings+'，重叠'+s.overlaps+'，空洞'+s.gaps+'，超速'+s.overspeed+'，过长'+s.long_lines+'</p>';
 }
 async function loadVersions() {
   if(!current) return; const v = await j('/api/media/'+current+'/versions');

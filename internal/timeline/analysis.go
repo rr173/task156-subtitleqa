@@ -93,7 +93,7 @@ func analyzeOne(seg model.Segment, cfg config.Thresholds, validSpeakers map[stri
 		}
 		return out
 	}
-	if runes > cfg.MaxSegmentChars*100 {
+	if runes > cfg.MaxSegmentChars {
 		out = append(out, Finding{
 			SegmentID: seg.ID,
 			Rule:      RuleLongLine,
