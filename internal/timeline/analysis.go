@@ -56,7 +56,10 @@ func Analyze(segs []model.Segment, cfg config.Thresholds, validSpeakers map[stri
 
 func analyzeOne(seg model.Segment, cfg config.Thresholds, validSpeakers map[string]bool) []Finding {
 	var out []Finding
-	if seg.SpeakerID != "" && validSpeakers[seg.SpeakerID] {
+	// A segment that names a speaker not registered for the media is an
+	// attribution anomaly: the subtitle references a marker that does not
+	// belong to the asset. Report it explicitly rather than silently passing.
+	if seg.SpeakerID != "" && !validSpeakers[seg.SpeakerID] {
 		out = append(out, Finding{
 			SegmentID: seg.ID,
 			Rule:      RuleUnknownSpeaker,

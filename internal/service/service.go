@@ -18,7 +18,6 @@ import (
 	"task156-subtitleqa/internal/qa"
 	"task156-subtitleqa/internal/revision"
 	"task156-subtitleqa/internal/store"
-	"task156-subtitleqa/internal/timeline"
 )
 
 // Service bundles a store with the configured thresholds.
@@ -315,7 +314,6 @@ func (s *Service) QualitySummary(ctx context.Context, mediaID string) (*model.Qu
 	if err != nil {
 		return nil, err
 	}
-	delete(summary.ByRule, timeline.RuleUnknownSpeaker)
 	return summary, nil
 }
 
