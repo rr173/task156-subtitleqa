@@ -52,3 +52,45 @@ func TestPublishedSnapshotRemainsFrozenAcrossLaterEdit(t *testing.T) {
 		t.Fatal("first publish snapshot was rewritten by later edit")
 	}
 }
+
+func TestDescriptiveSegmentWithNoTextSurfacesInQualityAndSummary(t *testing.T) {
+	st, err := store.Open(filepath.Join(t.TempDir(), "descriptive.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	svc := New(st)
+	ctx := context.Background()
+	media, err := svc.CreateMedia(ctx, model.CreateMediaRequest{Title: "描述", DurationMs: 4000})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.ImportSegments(ctx, media.ID, []model.SegmentInput{
+		{Index: 1, StartMs: 0, EndMs: 2000, Text: "", IsDescriptive: true},
+		{Index: 2, StartMs: 2000, EndMs: 4000, Text: ""},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	checks, err := svc.Quality(ctx, media.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var missingFound bool
+	for _, c := range checks {
+		if c.Rule == "descriptive_missing" {
+			missingFound = true
+		}
+	}
+	if !missingFound {
+		t.Fatalf("descriptive_missing finding missing from quality results: %+v", checks)
+	}
+
+	summary, err := svc.QualitySummary(ctx, media.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.ByRule["descriptive_missing"] != 1 {
+		t.Fatalf("expected summary to report 1 descriptive_missing, got %+v", summary.ByRule)
+	}
+}

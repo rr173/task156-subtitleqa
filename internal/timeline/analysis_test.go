@@ -50,6 +50,31 @@ func TestAnalyzeEmptyAndUnknownSpeaker(t *testing.T) {
 	}
 }
 
+func TestAnalyzeDescriptiveMissing(t *testing.T) {
+	cfg := config.Default()
+	segs := []model.Segment{
+		{ID: "s1", Index: 1, StartMs: 0, EndMs: 2000, Text: "", IsDescriptive: true},
+		{ID: "s2", Index: 2, StartMs: 2000, EndMs: 4000, Text: "   ", IsDescriptive: true},
+		{ID: "s3", Index: 3, StartMs: 4000, EndMs: 6000, Text: ""},
+	}
+	findings := Analyze(segs, cfg, map[string]bool{})
+	var missing, empty int
+	for _, f := range findings {
+		switch f.Rule {
+		case RuleDescriptiveMissing:
+			missing++
+		case RuleEmpty:
+			empty++
+		}
+	}
+	if missing != 2 {
+		t.Errorf("expected 2 descriptive_missing findings (blank + whitespace), got %d: %+v", missing, findings)
+	}
+	if empty != 1 {
+		t.Errorf("expected 1 plain empty finding, got %d: %+v", empty, findings)
+	}
+}
+
 func TestReadingSpeedCPS(t *testing.T) {
 	cps, ok := ReadingSpeedCPS("十二个字", 0, 1000)
 	if !ok || cps != 4 {

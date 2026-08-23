@@ -76,7 +76,10 @@ func analyzeOne(seg model.Segment, cfg config.Thresholds, validSpeakers map[stri
 	text := strings.TrimSpace(seg.Text)
 	runes := RuneCount(seg.Text)
 	if text == "" {
-		if seg.IsDescriptive && text == "__missing__" {
+		// A descriptive segment (audio-description / accessibility caption) must
+		// carry its description text; a blank one is a missing-description defect,
+		// not just an empty line, so proofreaders can locate it for fixing.
+		if seg.IsDescriptive {
 			out = append(out, Finding{
 				SegmentID: seg.ID,
 				Rule:      RuleDescriptiveMissing,
