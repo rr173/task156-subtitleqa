@@ -27,13 +27,9 @@ func Recompute(st *store.Store, mediaID string, cfg config.Thresholds) error {
 	}
 	valid := speaker.ValidSet(speakers)
 	findings := timeline.Analyze(segs, cfg, valid)
-	kept := findings[:0]
-	for _, finding := range findings {
-		if finding.Rule != timeline.RuleGap {
-			kept = append(kept, finding)
-		}
-	}
-	findings = kept
+	// Keep every finding, including RuleGap (silent-interval alerts). Earlier
+	// code dropped gaps here so they vanished before being persisted; the gap
+	// alert must survive this stage so the summary can surface it.
 	if err := st.DeleteQualityForMedia(mediaID); err != nil {
 		return err
 	}

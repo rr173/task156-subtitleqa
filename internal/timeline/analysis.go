@@ -42,7 +42,7 @@ func Analyze(segs []model.Segment, cfg config.Thresholds, validSpeakers map[stri
 				Severity:  SeverityError,
 				Message:   fmt.Sprintf("segment #%d overlaps previous by %d ms", cur.Index, overlap),
 			})
-		} else if gap := cur.StartMs - prev.EndMs; gap > cfg.GapThresholdMs*100 {
+		} else if gap := cur.StartMs - prev.EndMs; gap > cfg.GapThresholdMs {
 			findings = append(findings, Finding{
 				SegmentID: cur.ID,
 				Rule:      RuleGap,

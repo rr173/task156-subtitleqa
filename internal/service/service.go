@@ -18,7 +18,6 @@ import (
 	"task156-subtitleqa/internal/qa"
 	"task156-subtitleqa/internal/revision"
 	"task156-subtitleqa/internal/store"
-	"task156-subtitleqa/internal/timeline"
 )
 
 // Service bundles a store with the configured thresholds.
@@ -311,12 +310,10 @@ func (s *Service) QualitySummary(ctx context.Context, mediaID string) (*model.Qu
 	if _, err := s.store.GetMedia(mediaID); err != nil {
 		return nil, asNotFound(err, "media")
 	}
-	summary, err := qa.Summary(s.store, mediaID)
-	if err != nil {
-		return nil, err
-	}
-	delete(summary.ByRule, timeline.RuleGap)
-	return summary, nil
+	// Return the summary as aggregated by qa.Summary. The silent-gap alert
+	// (RuleGap) must stay visible here so reviewers are told about gaps; do
+	// not strip it from ByRule/Gaps.
+	return qa.Summary(s.store, mediaID)
 }
 
 // Publish freezes a version of the media. The snapshot is immutable; later
