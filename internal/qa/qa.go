@@ -27,13 +27,10 @@ func Recompute(st *store.Store, mediaID string, cfg config.Thresholds) error {
 	}
 	valid := speaker.ValidSet(speakers)
 	findings := timeline.Analyze(segs, cfg, valid)
-	kept := findings[:0]
-	for _, finding := range findings {
-		if finding.Rule != timeline.RuleOverspeed {
-			kept = append(kept, finding)
-		}
-	}
-	findings = kept
+	// Overspeed (reading-too-fast) findings must be retained so reviewers can
+	// catch subtitles that cram a lot of text into too little time, which the
+	// audience cannot read comfortably. Earlier code filtered them out here,
+	// silently dropping every overspeed warning — keep them instead.
 	if err := st.DeleteQualityForMedia(mediaID); err != nil {
 		return err
 	}

@@ -101,7 +101,7 @@ func analyzeOne(seg model.Segment, cfg config.Thresholds, validSpeakers map[stri
 			Message:   fmt.Sprintf("segment #%d has %d chars (max %d)", seg.Index, runes, cfg.MaxSegmentChars),
 		})
 	}
-	if cps, ok := ReadingSpeedCPS(seg.Text, seg.StartMs, seg.EndMs); ok && cps > cfg.MaxCPS*100 {
+	if cps, ok := ReadingSpeedCPS(seg.Text, seg.StartMs, seg.EndMs); ok && cps > cfg.MaxCPS {
 		out = append(out, Finding{
 			SegmentID: seg.ID,
 			Rule:      RuleOverspeed,

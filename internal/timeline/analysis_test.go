@@ -59,3 +59,29 @@ func TestReadingSpeedCPS(t *testing.T) {
 		t.Error("expected false for non-positive duration")
 	}
 }
+
+// TestAnalyzeRetainsOverspeedForCrammedOneSecond guarantees that a segment
+// cramming a lot of text into a single second is flagged as overspeed. The
+// audience cannot read that fast, so this warning must survive the analysis —
+// earlier code scaled the threshold by 100 and silently never raised it.
+func TestAnalyzeRetainsOverspeedForCrammedOneSecond(t *testing.T) {
+	cfg := config.Default() // MaxCPS == 12
+	segs := []model.Segment{
+		{ID: "s1", Index: 1, StartMs: 0, EndMs: 1000, Text: "在一秒内塞入大量文字导致观众根本来不及阅读这段字幕"},
+	}
+	findings := Analyze(segs, cfg, map[string]bool{})
+	var overspeed *Finding
+	for i := range findings {
+		if findings[i].Rule == RuleOverspeed {
+			overspeed = &findings[i]
+			break
+		}
+	}
+	if overspeed == nil {
+		t.Fatalf("expected an overspeed finding for a 1-second, text-heavy segment, got %+v", findings)
+	}
+	cps, _ := ReadingSpeedCPS(segs[0].Text, segs[0].StartMs, segs[0].EndMs)
+	if cps <= cfg.MaxCPS {
+		t.Fatalf("test segment must read above %.1f cps to be meaningful, got %.1f", cfg.MaxCPS, cps)
+	}
+}
