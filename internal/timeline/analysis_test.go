@@ -50,6 +50,26 @@ func TestAnalyzeEmptyAndUnknownSpeaker(t *testing.T) {
 	}
 }
 
+// TestAnalyzeFlagsZeroDurationSegment guarantees that a segment whose start
+// equals its end is flagged as non-positive duration. Restart recovery must
+// surface these damaged segments rather than treat zero duration as valid.
+func TestAnalyzeFlagsZeroDurationSegment(t *testing.T) {
+	cfg := config.Default()
+	segs := []model.Segment{
+		{ID: "s1", Index: 1, StartMs: 1500, EndMs: 1500, Text: "损坏字幕"},
+	}
+	findings := Analyze(segs, cfg, map[string]bool{})
+	var saw bool
+	for _, f := range findings {
+		if f.Rule == RuleNonPositiveDuration {
+			saw = true
+		}
+	}
+	if !saw {
+		t.Fatalf("expected non_positive_duration finding for start==end segment, got %+v", findings)
+	}
+}
+
 func TestReadingSpeedCPS(t *testing.T) {
 	cps, ok := ReadingSpeedCPS("十二个字", 0, 1000)
 	if !ok || cps != 4 {

@@ -64,7 +64,7 @@ func analyzeOne(seg model.Segment, cfg config.Thresholds, validSpeakers map[stri
 			Message:   fmt.Sprintf("segment #%d references unknown speaker %q", seg.Index, seg.SpeakerID),
 		})
 	}
-	if seg.EndMs < seg.StartMs {
+	if seg.EndMs <= seg.StartMs {
 		out = append(out, Finding{
 			SegmentID: seg.ID,
 			Rule:      RuleNonPositiveDuration,
