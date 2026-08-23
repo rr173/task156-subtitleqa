@@ -17,6 +17,12 @@ import (
 // Recompute deletes the media's findings and regenerates them from the current
 // segments and speakers. Call it after imports, edits and on service recovery.
 func Recompute(st *store.Store, mediaID string, cfg config.Thresholds) error {
+	// Drop every persisted finding first so the table reflects the current
+	// segment state alone; without this, re-imports and edits would accumulate
+	// stale or duplicate rows alongside the freshly derived ones.
+	if err := st.DeleteQualityForMedia(mediaID); err != nil {
+		return err
+	}
 	segs, err := st.ListSegments(mediaID)
 	if err != nil {
 		return err
@@ -66,6 +72,8 @@ func Summary(st *store.Store, mediaID string) (*model.QualitySummary, error) {
 			out.Gaps++
 		case timeline.RuleOverspeed:
 			out.Overspeed++
+		case timeline.RuleEmpty:
+			out.EmptyLines++
 		}
 		if c.Severity == timeline.SeverityError {
 			out.Errors++

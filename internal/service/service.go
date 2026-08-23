@@ -194,6 +194,12 @@ func (s *Service) ImportSegments(ctx context.Context, mediaID string, inputs []m
 	if err := s.store.CreateSegments(segs); err != nil {
 		return nil, err
 	}
+	// Quality findings must reflect the freshly imported segments immediately, so
+	// a quality summary read right after import reports empty lines and gaps
+	// instead of waiting for a later edit or restart recovery to derive them.
+	if err := qa.Recompute(s.store, mediaID, s.cfg); err != nil {
+		return nil, err
+	}
 	return segs, nil
 }
 
