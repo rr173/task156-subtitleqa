@@ -61,6 +61,7 @@ type QualitySummary struct {
 	Overlaps   int            `json:"overlaps"`
 	Gaps       int            `json:"gaps"`
 	Overspeed  int            `json:"overspeed"`
+	Empties    int            `json:"empties"`
 	Errors     int            `json:"errors"`
 	Warnings   int            `json:"warnings"`
 }

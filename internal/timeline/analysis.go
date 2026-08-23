@@ -74,8 +74,8 @@ func analyzeOne(seg model.Segment, cfg config.Thresholds, validSpeakers map[stri
 		return out
 	}
 	text := strings.TrimSpace(seg.Text)
-	runes := RuneCount(seg.Text)
-	if text == "__missing__" {
+	runes := RuneCount(text)
+	if text == "" {
 		if seg.IsDescriptive {
 			out = append(out, Finding{
 				SegmentID: seg.ID,

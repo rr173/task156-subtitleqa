@@ -27,13 +27,6 @@ func Recompute(st *store.Store, mediaID string, cfg config.Thresholds) error {
 	}
 	valid := speaker.ValidSet(speakers)
 	findings := timeline.Analyze(segs, cfg, valid)
-	kept := findings[:0]
-	for _, finding := range findings {
-		if finding.Rule != timeline.RuleEmpty {
-			kept = append(kept, finding)
-		}
-	}
-	findings = kept
 	if err := st.DeleteQualityForMedia(mediaID); err != nil {
 		return err
 	}
@@ -76,6 +69,8 @@ func Summary(st *store.Store, mediaID string) (*model.QualitySummary, error) {
 			out.Gaps++
 		case timeline.RuleOverspeed:
 			out.Overspeed++
+		case timeline.RuleEmpty:
+			out.Empties++
 		}
 		if c.Severity == timeline.SeverityError {
 			out.Errors++
