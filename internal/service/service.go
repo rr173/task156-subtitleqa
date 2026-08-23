@@ -266,6 +266,13 @@ func (s *Service) EditSegment(ctx context.Context, segID string, req model.EditS
 	if err := s.store.AddRevision(rev); err != nil {
 		return nil, nil, err
 	}
+	// An edit can change the text, timing or speaker of a segment, which in turn
+	// can raise or clear findings (empty line filled in, overlap removed, etc.).
+	// Recompute immediately so the quality view reflects the new state instead
+	// of leaving stale warnings for problems the edit just resolved.
+	if err := qa.Recompute(s.store, patched.MediaID, s.cfg); err != nil {
+		return nil, nil, err
+	}
 	return &patched, nil, nil
 }
 

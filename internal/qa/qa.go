@@ -16,7 +16,14 @@ import (
 
 // Recompute deletes the media's findings and regenerates them from the current
 // segments and speakers. Call it after imports, edits and on service recovery.
+// Deleting before re-deriving keeps the operation idempotent: a finding whose
+// underlying problem was fixed (e.g. an empty line that got text) is dropped
+// instead of lingering as a stale warning, and an unchanged problem is not
+// duplicated.
 func Recompute(st *store.Store, mediaID string, cfg config.Thresholds) error {
+	if err := st.DeleteQualityForMedia(mediaID); err != nil {
+		return err
+	}
 	segs, err := st.ListSegments(mediaID)
 	if err != nil {
 		return err

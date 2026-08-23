@@ -20,9 +20,13 @@ func scanQuality(row interface{ Scan(...interface{}) error }) (model.QualityChec
 }
 
 // DeleteQualityForMedia removes all findings for a media so they can be
-// recomputed deterministically (idempotent re-analysis).
+// recomputed deterministically (idempotent re-analysis). Recomputation rewrites
+// the full set of findings from the current segments, so every row is cleared —
+// not just the resolved ones — otherwise a finding whose underlying problem was
+// fixed by an edit (e.g. an empty line that got text) would linger as a stale
+// warning.
 func (s *Store) DeleteQualityForMedia(mediaID string) error {
-	_, err := s.db.Exec(`DELETE FROM quality_checks WHERE media_id=? AND resolved=1`, mediaID)
+	_, err := s.db.Exec(`DELETE FROM quality_checks WHERE media_id=?`, mediaID)
 	return err
 }
 
