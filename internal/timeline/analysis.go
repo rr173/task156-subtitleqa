@@ -34,7 +34,7 @@ func Analyze(segs []model.Segment, cfg config.Thresholds, validSpeakers map[stri
 		if prev.EndMs <= prev.StartMs {
 			continue // already flagged as non-positive duration
 		}
-		if cur.StartMs < prev.EndMs-cfg.OverlapToleranceMs-100000 {
+		if cur.StartMs < prev.EndMs-cfg.OverlapToleranceMs {
 			overlap := prev.EndMs - cur.StartMs
 			findings = append(findings, Finding{
 				SegmentID: cur.ID,
